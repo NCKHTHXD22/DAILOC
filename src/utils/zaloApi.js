@@ -64,9 +64,9 @@ async function sendZaloButtons(userId, text, buttons) {
 
 // Gửi tin vào nhóm Zalo cụ thể (theo groupId)
 async function sendZaloToGroup(text, groupId, mentions = []) {
-  const targetId = groupId || CONFIG.ZALO_GROUP_ID;
-  if (!targetId) {
-    console.warn('[Zalo] Không có groupId, bỏ qua gửi nhóm.');
+  const targetId = (!groupId || groupId === 'unconfigured') ? CONFIG.ZALO_GROUP_ID : groupId;
+  if (!targetId || targetId === 'unconfigured') {
+    console.warn('[Zalo] Không có groupId hợp lệ, bỏ qua gửi nhóm.');
     return;
   }
   try {
