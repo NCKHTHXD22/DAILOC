@@ -2,6 +2,7 @@ const router = require('express').Router()
 const Category = require('../../src/models/Category')
 const ZaloGroupMember = require('../../src/models/ZaloGroupMember')
 const requireRole = require('../middleware/requireRole')
+const { syncMembersOfCategory } = require('../../src/services/groupSyncService')
 
 // GET /:categoryId — danh sách members của nhóm
 router.get('/:categoryId', async (req, res) => {
@@ -43,6 +44,20 @@ router.post('/manual/:categoryId', requireRole('superadmin'), async (req, res) =
   }
 })
 
+// POST /sync/:categoryId — đồng bộ thành viên từ Zalo API (superadmin)
+router.post('/sync/:categoryId', requireRole('superadmin'), async (req, res) => {
+  try {
+    const cat = await Category.findById(req.params.categoryId).lean()
+    if (!cat) return res.status(404).json({ error: 'Không tìm thấy danh mục' })
+    if (!cat.zaloGroupId) return res.status(400).json({ error: 'Danh mục chưa có Group ID' })
+
+    const synced = await syncMembersOfCategory(cat._id, cat.zaloGroupId)
+    res.json({ synced })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // DELETE /member/:memberId — xóa thành viên (superadmin)
 router.delete('/member/:memberId', requireRole('superadmin'), async (req, res) => {
   try {
@@ -54,3 +69,4 @@ router.delete('/member/:memberId', requireRole('superadmin'), async (req, res) =
 })
 
 module.exports = router
+

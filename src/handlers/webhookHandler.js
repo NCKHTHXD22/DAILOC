@@ -11,8 +11,42 @@ const { syncFollowers } = require('../admin/followerService');
 
 async function handleWebhook(body) {
   const eventName = body.event_name;
+
+  // Sự kiện thành viên ra/vào nhóm Zalo
+  if (['user_join_group', 'user_leave_group'].includes(eventName)) {
+    const groupId = body.group?.id || body.group_id;
+    const users = body.users || [];
+
+    // Fallback nếu Zalo đổi lại cấu trúc
+    if (!users.length) {
+      const fallbackId = body.sender?.id || body.follower?.id || body.user?.id;
+      if (fallbackId) users.push({ id: fallbackId });
+    }
+
+    console.log(`[GroupSync] Webhook ${eventName}: groupId=${groupId}, có ${users.length} user`);
+
+    if (groupId && users.length > 0) {
+      const { handleUserJoinGroup, handleUserLeaveGroup } = require('../services/groupSyncService');
+
+      for (const u of users) {
+        const userId = u.id;
+        if (!userId) continue;
+
+        if (eventName === 'user_join_group') {
+          handleUserJoinGroup(groupId, userId, '', '').catch(e => console.error(e));
+        } else {
+          handleUserLeaveGroup(groupId, userId).catch(e => console.error(e));
+        }
+      }
+    } else {
+      console.warn(`[GroupSync] Webhook thiếu groupId hoặc danh sách user rỗng! Không thể xử lý.`);
+    }
+    return;
+  }
+
   const userId = body.sender?.id || body.follower?.id;
   if (!userId) return;
+
 
   console.log(`[Event] ${eventName} | userId: ${userId}`);
 
