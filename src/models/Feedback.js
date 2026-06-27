@@ -6,6 +6,8 @@ const feedbackSchema = new mongoose.Schema({
   contact:        { type: String, required: true },
   content:        { type: String, required: true },
   imageUrl:       { type: String, default: '' },
+  videoUrl:       { type: String, default: '' },
+
   categoryId:     { type: mongoose.Schema.Types.ObjectId, ref: 'Category', default: null },
   // pending = mới / đang xử lý, draft = dự thảo chờ duyệt, resolved = đã gửi dân
   status:         { type: String, enum: ['pending', 'draft', 'resolved', 'processing', 'done'], default: 'pending' },

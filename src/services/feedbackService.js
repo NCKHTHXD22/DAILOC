@@ -122,12 +122,12 @@ async function handleText(userId, text, displayName) {
       await sendZaloText(userId, '⚠️ Nội dung quá ngắn. Vui lòng nhập ít nhất 5 ký tự.');
       return;
     }
-    setState(userId, { ...state, step: 'waiting_image', content: text.trim() });
+    setState(userId, { ...state, step: 'waiting_image', content: text.trim(), imageUrl: '', videoUrl: '' });
     await sendZaloText(userId,
-      '📎 Bạn có muốn gửi hình ảnh minh hoạ không?\n\n' +
-      '• Gửi URL ảnh (http/https)\n' +
-      '• Hoặc gửi ảnh trực tiếp từ điện thoại\n\n' +
-      '1️⃣ Không có hình ảnh — gõ số 1 để bỏ qua'
+      '📎 Bạn có muốn gửi hình ảnh hoặc video minh hoạ không?\n\n' +
+      '• Gửi ảnh hoặc video trực tiếp từ điện thoại\n' +
+      '• Hoặc gửi URL ảnh/video (http/https)\n\n' +
+      '1️⃣ Không có hình ảnh/video — gõ số 1 để bỏ qua'
     );
     return;
   }
@@ -135,27 +135,41 @@ async function handleText(userId, text, displayName) {
   if (state.step === 'waiting_image') {
     const noImageKeywords = ['1', 'không có', 'khong co', 'không', 'khong', 'no', 'bỏ qua', 'bo qua'];
     if (noImageKeywords.some(k => lower.trim() === k || lower.includes(k))) {
-      setState(userId, { ...state, step: 'waiting_confirm', imageUrl: '' });
-      await sendConfirmation(userId, { ...state, imageUrl: '' });
+      setState(userId, { ...state, step: 'waiting_confirm', imageUrl: '', videoUrl: '' });
+      await sendConfirmation(userId, { ...state, imageUrl: '', videoUrl: '' });
       return;
     }
     if (isUrl(text)) {
-      await sendZaloText(userId, '⏳ Đang tải ảnh lên...');
-      try {
-        const imageUrl = await uploadFromUrl(text.trim());
-        setState(userId, { ...state, step: 'waiting_confirm', imageUrl });
-        await sendConfirmation(userId, { ...state, imageUrl });
-      } catch (err) {
-        console.error('[Cloudinary] Upload URL thất bại:', err.message);
-        await sendZaloText(userId, '⚠️ Không thể tải ảnh từ URL đó. Hãy thử URL khác hoặc gõ "Không có hình ảnh".');
+      const isVideo = /\.(mp4|mov|avi|mkv|3gp|m4v)(\?.*)?$/i.test(text.trim());
+      if (isVideo) {
+        await sendZaloText(userId, '⏳ Đang tải video lên...');
+        try {
+          const { uploadFromZaloVideoUrl } = require('../utils/cloudinary');
+          const videoUrl = await uploadFromZaloVideoUrl(text.trim());
+          setState(userId, { ...state, step: 'waiting_confirm', imageUrl: '', videoUrl });
+          await sendConfirmation(userId, { ...state, imageUrl: '', videoUrl });
+        } catch (err) {
+          console.error('[Cloudinary] Upload URL video thất bại:', err.message);
+          await sendZaloText(userId, '⚠️ Không thể tải video từ URL đó. Hãy thử URL khác hoặc gõ "1" để bỏ qua.');
+        }
+      } else {
+        await sendZaloText(userId, '⏳ Đang tải ảnh lên...');
+        try {
+          const imageUrl = await uploadFromUrl(text.trim());
+          setState(userId, { ...state, step: 'waiting_confirm', imageUrl, videoUrl: '' });
+          await sendConfirmation(userId, { ...state, imageUrl, videoUrl: '' });
+        } catch (err) {
+          console.error('[Cloudinary] Upload URL ảnh thất bại:', err.message);
+          await sendZaloText(userId, '⚠️ Không thể tải ảnh từ URL đó. Hãy thử URL khác hoặc gõ "1" để bỏ qua.');
+        }
       }
       return;
     }
     await sendZaloText(userId,
-      '⚠️ Bạn đang ở bước gửi hình ảnh.\n\n' +
-      '• Gửi URL ảnh (http/https)\n' +
-      '• Hoặc gửi ảnh trực tiếp từ điện thoại\n\n' +
-      '1️⃣ Không có hình ảnh — gõ số 1 để bỏ qua'
+      '⚠️ Bạn đang ở bước gửi hình ảnh / video.\n\n' +
+      '• Gửi ảnh hoặc video trực tiếp từ điện thoại\n' +
+      '• Hoặc gửi URL ảnh/video (http/https)\n\n' +
+      '1️⃣ Không có hình ảnh/video — gõ số 1 để bỏ qua'
     );
     return;
   }
@@ -189,11 +203,29 @@ async function handleImage(userId, imageUrl) {
   await sendZaloText(userId, '⏳ Đang tải ảnh lên...');
   try {
     const cloudUrl = await uploadFromZaloImageUrl(imageUrl);
-    setState(userId, { ...state, step: 'waiting_confirm', imageUrl: cloudUrl });
-    await sendConfirmation(userId, { ...state, imageUrl: cloudUrl });
+    setState(userId, { ...state, step: 'waiting_confirm', imageUrl: cloudUrl, videoUrl: '' });
+    await sendConfirmation(userId, { ...state, imageUrl: cloudUrl, videoUrl: '' });
   } catch (err) {
     console.error('[Cloudinary] Upload ảnh Zalo thất bại:', err.message);
-    await sendZaloText(userId, '⚠️ Không thể tải ảnh. Hãy thử lại hoặc gõ "Không có hình ảnh".');
+    await sendZaloText(userId, '⚠️ Không thể tải ảnh. Hãy thử lại hoặc gõ "1" để bỏ qua.');
+  }
+}
+
+// Xử lý khi user gửi video trực tiếp (event user_send_video)
+async function handleVideo(userId, videoUrl) {
+  const state = getState(userId);
+  if (!state || state.step !== 'waiting_image') return;
+
+  const { uploadFromZaloVideoUrl } = require('../utils/cloudinary');
+
+  await sendZaloText(userId, '⏳ Đang tải video lên...');
+  try {
+    const cloudUrl = await uploadFromZaloVideoUrl(videoUrl);
+    setState(userId, { ...state, step: 'waiting_confirm', imageUrl: '', videoUrl: cloudUrl });
+    await sendConfirmation(userId, { ...state, imageUrl: '', videoUrl: cloudUrl });
+  } catch (err) {
+    console.error('[Cloudinary] Upload video Zalo thất bại:', err.message);
+    await sendZaloText(userId, '⚠️ Không thể tải video. Hãy thử lại hoặc gõ "1" để bỏ qua.');
   }
 }
 
@@ -209,12 +241,14 @@ async function handleContactCard(userId, phone, displayName) {
 
 async function sendConfirmation(userId, state) {
   const imageStatus = state.imageUrl ? '✅ Đã đính kèm ảnh' : '❌ Không có ảnh';
+  const videoStatus = state.videoUrl ? '✅ Đã đính kèm video' : '❌ Không có video';
   await sendZaloText(userId,
     '📋 Xác nhận góp ý:\n' +
     `• Liên hệ: ${state.contact}\n` +
     `• Loại: ${state.categoryName || 'Chưa chọn'}\n` +
     `• Nội dung: ${state.content}\n` +
-    `• Hình ảnh: ${imageStatus}\n\n` +
+    `• Hình ảnh: ${imageStatus}\n` +
+    `• Video: ${videoStatus}\n\n` +
     'Trả lời bằng số:\n' +
     '1️⃣ Xác nhận gửi\n' +
     '2️⃣ Nhập lại\n' +
@@ -239,6 +273,7 @@ async function saveFeedback(userId, state) {
       contact: state.contact,
       content: state.content,
       imageUrl: state.imageUrl || '',
+      videoUrl: state.videoUrl || '',
       categoryId: state.categoryId || null,
       deadline,
     });
@@ -257,6 +292,7 @@ async function saveFeedback(userId, state) {
     const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
     const nameInfo = displayName ? `👤 Tên: ${displayName}\n` : '';
     const imageInfo = state.imageUrl ? `🖼️ Ảnh: ${state.imageUrl}` : '🖼️ Ảnh: Không có';
+    const videoInfo = state.videoUrl ? `🎬 Video: ${state.videoUrl}` : '🎬 Video: Không có';
     const catInfo = state.categoryName ? `🏷️ Loại: ${state.categoryName}\n` : '';
     const groupMsg =
       `📩 PHẢN ÁNH MỚI - ${now}\n` +
@@ -266,6 +302,7 @@ async function saveFeedback(userId, state) {
       `${catInfo}` +
       `📝 Nội dung:\n${state.content}\n` +
       `${imageInfo}\n` +
+      `${videoInfo}\n` +
       `🆔 Mã: #${shortCode}`;
 
     const targetGroupId = state.categoryGroupId;
@@ -292,4 +329,5 @@ function isFeedbackTrigger(text) {
   );
 }
 
-module.exports = { startFeedback, handleText, handleImage, handleContactCard, isFeedbackTrigger };
+module.exports = { startFeedback, handleText, handleImage, handleVideo, handleContactCard, isFeedbackTrigger };
+

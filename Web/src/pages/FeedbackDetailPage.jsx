@@ -177,6 +177,13 @@ export default function FeedbackDetailPage() {
                   </a>
                 </div>
               )}
+
+              {fb.videoUrl && (
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Video đính kèm</p>
+                  <video src={fb.videoUrl} controls className="max-h-80 rounded-lg border object-cover w-full max-w-lg" />
+                </div>
+              )}
             </CardContent>
           </Card>
 

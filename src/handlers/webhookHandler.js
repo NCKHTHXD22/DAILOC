@@ -115,6 +115,18 @@ async function handleWebhook(body) {
     }
     return;
   }
+
+  // User gửi video trực tiếp
+  if (eventName === 'user_send_video') {
+    const attachments = body.message?.attachments || [];
+    const videoAtt = attachments.find(a => a.type === 'video');
+    const videoUrl = videoAtt?.payload?.url || '';
+    if (videoUrl) {
+      const { handleVideo } = require('../services/feedbackService');
+      await handleVideo(userId, videoUrl);
+    }
+    return;
+  }
 }
 
 module.exports = { handleWebhook };

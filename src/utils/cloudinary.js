@@ -61,4 +61,14 @@ async function uploadFromZaloImageUrl(zaloUrl) {
   return result.secure_url;
 }
 
-module.exports = { uploadFromUrl, uploadFromBuffer, uploadFromZaloImageUrl };
+// Video Zalo có thể nặng -> để Cloudinary tự fetch từ URL (không buffer trong Node)
+async function uploadFromZaloVideoUrl(zaloUrl) {
+  const result = await cloudinary.uploader.upload(zaloUrl, {
+    folder: 'dailoc-goopy',
+    resource_type: 'video',
+  });
+  return result.secure_url;
+}
+
+module.exports = { uploadFromUrl, uploadFromBuffer, uploadFromZaloImageUrl, uploadFromZaloVideoUrl };
+
