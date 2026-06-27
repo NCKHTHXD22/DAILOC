@@ -9,8 +9,8 @@ let _cache = null;
 
 // ─── Redis helpers ───
 async function redisCmd(...args) {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.UPSTASH_REDIS_REST_URL?.replace(/['"]/g, '');
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN?.replace(/['"]/g, '');
   if (!url || !token) return null;
   try {
     const res = await axios.post(url, args, {

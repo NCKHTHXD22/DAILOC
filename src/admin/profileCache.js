@@ -1,8 +1,8 @@
 const axios = require('axios');
 
 async function redisCmd(...args) {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.UPSTASH_REDIS_REST_URL?.replace(/['"]/g, '');
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN?.replace(/['"]/g, '');
   if (!url || !token) return null;
   try {
     const res = await axios.post(url, args, {
@@ -23,8 +23,8 @@ async function saveProfile(userId, displayName, avatar = '') {
 // Lấy profile của nhiều userId từ Redis; fallback gọi Zalo API nếu cache miss
 async function getProfiles(userIds) {
   if (!userIds?.length) return {};
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.UPSTASH_REDIS_REST_URL?.replace(/['"]/g, '');
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN?.replace(/['"]/g, '');
 
   const result = {};
 

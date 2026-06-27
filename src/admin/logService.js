@@ -4,8 +4,8 @@ const MAX_LOGS = 500;
 const _memLogs = []; // in-memory fallback khi không có Redis
 
 async function redisCmd(...args) {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.UPSTASH_REDIS_REST_URL?.replace(/['"]/g, '');
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN?.replace(/['"]/g, '');
   if (!url || !token) return null;
   try {
     const res = await axios.post(url, args, {
