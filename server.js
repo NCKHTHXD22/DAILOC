@@ -78,10 +78,10 @@ mongoose.connect(CONFIG.MONGO_URI)
     const catCount = await Category.countDocuments();
     if (catCount === 0) {
       const defaultCategories = [
-        { name: 'Môi trường, Hạ tầng, Xây dựng',   zaloGroupId: process.env.ZALO_GROUP_MOITRUONG || '', icon: '🏗️', order: 1 },
-        { name: 'Văn hoá, Giáo dục, Y tế',           zaloGroupId: process.env.ZALO_GROUP_VANHOA    || '', icon: '🏫', order: 2 },
-        { name: 'Dịch vụ công, Thủ tục hành chính', zaloGroupId: process.env.ZALO_GROUP_DICHVUCONG || '', icon: '📋', order: 3 },
-        { name: 'An ninh trật tự, PCCC',             zaloGroupId: process.env.ZALO_GROUP_ANNINH    || '', icon: '🚔', order: 4 },
+        { name: 'Môi trường, Hạ tầng, Xây dựng',   zaloGroupId: process.env.ZALO_GROUP_MOITRUONG || 'unconfigured', icon: '🏗️', order: 1 },
+        { name: 'Văn hoá, Giáo dục, Y tế',           zaloGroupId: process.env.ZALO_GROUP_VANHOA    || 'unconfigured', icon: '🏫', order: 2 },
+        { name: 'Dịch vụ công, Thủ tục hành chính', zaloGroupId: process.env.ZALO_GROUP_DICHVUCONG || 'unconfigured', icon: '📋', order: 3 },
+        { name: 'An ninh trật tự, PCCC',             zaloGroupId: process.env.ZALO_GROUP_ANNINH    || 'unconfigured', icon: '🚔', order: 4 },
       ];
       await Category.insertMany(defaultCategories);
       console.log('[Seed] Đã tạo 4 danh mục phản ánh mặc định');
