@@ -7,6 +7,14 @@ const {
   handleLocation,
   isFeedbackTrigger,
 } = require('../services/feedbackService');
+const {
+  isLookupTrigger,
+  isDirectCode,
+  startLookup,
+  handleLookupReply,
+  lookupByCode,
+} = require('../services/lookupService');
+const { getState } = require('../services/chatState');
 const { saveProfile } = require('../admin/profileCache');
 const { syncFollowers } = require('../admin/followerService');
 
@@ -117,6 +125,24 @@ async function handleWebhook(body) {
       }
     }
 
+    // Đang trong luồng tra cứu → xử lý chọn số / mã
+    const state = getState(userId);
+    if (state?.step === 'lookup_list') {
+      await handleLookupReply(userId, text);
+      return;
+    }
+    // Khi chưa có luồng nào đang chạy: bắt trigger tra cứu / mã trực tiếp
+    if (!state) {
+      if (isLookupTrigger(text)) {
+        await startLookup(userId);
+        return;
+      }
+      if (isDirectCode(text)) {
+        await lookupByCode(userId, text);
+        return;
+      }
+    }
+
     // Xử lý trong luồng góp ý (trigger chỉ kích hoạt khi chưa có luồng đang chạy)
     await handleText(userId, text, displayName);
     return;
@@ -125,6 +151,10 @@ async function handleWebhook(body) {
   // User click menu "Truy vấn tự động" (submit_info)
   if (eventName === 'user_submit_info') {
     const action = (body.info?.action_payload || body.info?.action || body.info?.data || '').trim();
+    if (isLookupTrigger(action)) {
+      await startLookup(userId);
+      return;
+    }
     if (isFeedbackTrigger(action) || action === '#goopy' || action === '#goppy') {
       await startFeedback(userId);
     }

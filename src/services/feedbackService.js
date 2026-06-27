@@ -11,24 +11,9 @@ const BATCH_DELAY_MS = 3000; // Chờ 3 giây để gộp ảnh gửi cùng lúc
 const DAI_LOC_VIEWBOX = '107.8,16.0,108.3,15.7'; // min_lng,max_lat,max_lng,min_lat
 
 // State machine lưu trạng thái từng user trong memory (10 phút timeout)
-const userStates = new Map();
+// Dùng chung qua chatState để luồng góp ý & tra cứu không xung đột state.
+const { setState, getState, clearState } = require('./chatState');
 const profileCache = new Map();
-
-function setState(userId, data) {
-  userStates.set(userId, { ...data, ts: Date.now() });
-  setTimeout(() => {
-    const cur = userStates.get(userId);
-    if (cur && cur.ts === userStates.get(userId)?.ts) userStates.delete(userId);
-  }, 10 * 60 * 1000);
-}
-
-function getState(userId) {
-  return userStates.get(userId) || null;
-}
-
-function clearState(userId) {
-  userStates.delete(userId);
-}
 
 // Buffer gộp ảnh: { userId → { urls: [], timer } }
 const imageBatchBuffer = new Map();
