@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { Search, Bell, Menu, X } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import Sidebar from './Sidebar'
+import NotificationBell from './NotificationBell'
 
 const PAGE_TITLES = {
   '/dashboard': { title: 'Tổng quan', subtitle: 'Thống kê & theo dõi góp ý người dân' },
@@ -69,10 +70,7 @@ export default function AppLayout() {
               </div>
 
               {/* Bell */}
-              <button className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 border border-white/20 hover:bg-white/25 transition-all">
-                <Bell className="h-4 w-4 text-white" />
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-400 ring-1 ring-blue-600" />
-              </button>
+              <NotificationBell />
 
               {/* User chip */}
               <div className="flex items-center gap-2.5 rounded-xl bg-white/15 border border-white/20 px-3 py-1.5">

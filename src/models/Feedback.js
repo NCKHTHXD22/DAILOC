@@ -1,20 +1,41 @@
 const mongoose = require('mongoose');
 
+// Gói đính kèm nội bộ (ảnh/video/file + ghi chú) dùng chung cho tab Phân công & tab Xử lý
+const attachmentBundleSchema = new mongoose.Schema({
+  note:    { type: String, default: '' },
+  images:  [{ url: String, name: String }],
+  video:   { url: { type: String, default: '' }, name: { type: String, default: '' } },
+  file:    { url: { type: String, default: '' }, name: { type: String, default: '' } },
+  sentBy:  { type: mongoose.Schema.Types.ObjectId, ref: 'AdminUser', default: null },
+  sentAt:  { type: Date, default: null },
+}, { _id: false });
+
+const locationSchema = new mongoose.Schema({
+  address: { type: String, default: '' },
+  lat:     { type: Number, default: null },
+  lng:     { type: Number, default: null },
+}, { _id: false });
+
 const feedbackSchema = new mongoose.Schema({
   userId:         { type: String, required: true, index: true },
   displayName:    { type: String, default: '' },
   contact:        { type: String, required: true },
   content:        { type: String, required: true },
+  location:       { type: locationSchema, default: () => ({}) },
   imageUrl:       { type: String, default: '' },
-  videoUrl:       { type: String, default: '' },
-
+  imageUrls:      [{ type: String }],
+  videoUrl:       { type: String, default: '' }, // Tương thích với tính năng video của DAILOC
   categoryId:     { type: mongoose.Schema.Types.ObjectId, ref: 'Category', default: null },
   // pending = mới / đang xử lý, draft = dự thảo chờ duyệt, resolved = đã gửi dân
   status:         { type: String, enum: ['pending', 'draft', 'resolved', 'processing', 'done'], default: 'pending' },
   createdAt:      { type: Date, default: Date.now },
   deadline:       { type: Date, default: null },
+  lastReminderSentAt: { type: Date, default: null },
   assignedTo:     { type: mongoose.Schema.Types.ObjectId, ref: 'AdminUser', default: null },
   assignedBy:     { type: mongoose.Schema.Types.ObjectId, ref: 'AdminUser', default: null },
+  // Đính kèm nội bộ — tab Phân công (từ leader) & tab Xử lý (từ officer), ghi đè mỗi lần gửi lại
+  assignAttachments: { type: attachmentBundleSchema, default: () => ({}) },
+  draftAttachments:  { type: attachmentBundleSchema, default: () => ({}) },
   // Dự thảo
   draftResponse:  { type: String, default: '' },
   draftBy:        { type: mongoose.Schema.Types.ObjectId, ref: 'AdminUser', default: null },

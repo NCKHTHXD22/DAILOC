@@ -63,20 +63,55 @@ async function sendZaloButtons(userId, text, buttons) {
 }
 
 // Gửi tin vào nhóm Zalo cụ thể (theo groupId)
-async function sendZaloToGroup(text, groupId) {
+async function sendZaloToGroup(text, groupId, mentions = []) {
   const targetId = groupId || CONFIG.ZALO_GROUP_ID;
   if (!targetId) {
     console.warn('[Zalo] Không có groupId, bỏ qua gửi nhóm.');
     return;
   }
   try {
+    const message = mentions.length > 0 ? { text, mentions } : { text };
     const res = await zaloPost(
       'https://openapi.zalo.me/v2.0/oa/message',
-      { recipient: { group_id: String(targetId) }, message: { text } }
+      { recipient: { group_id: String(targetId) }, message }
     );
     if (res.data?.error !== 0) console.error('[Zalo] Lỗi gửi tin nhóm:', res.data);
   } catch (err) {
     console.error('[Zalo] Gửi tin nhóm thất bại:', err.message);
+  }
+}
+
+// Gửi message với nút bấm mở URL (dùng cho mini web page chia sẻ vị trí)
+async function sendZaloLinkButton(userId, title, subtitle, buttonLabel, url) {
+  try {
+    const res = await zaloPost('https://openapi.zalo.me/v2.0/oa/message', {
+      recipient: { user_id: String(userId) },
+      message: {
+        attachment: {
+          type: 'template',
+          payload: {
+            template_type: 'list',
+            elements: [{
+              title,
+              subtitle,
+              default_action: { type: 'oa.open.url', url },
+            }],
+            buttons: [{
+              title: buttonLabel,
+              type: 'oa.open.url',
+              payload: { url },
+            }],
+          },
+        },
+      },
+    });
+    if (res.data?.error !== 0) {
+      console.warn('[Zalo] sendZaloLinkButton error, fallback text:', res.data);
+      await sendZaloText(userId, `${title}\n${subtitle}\n👉 ${url}`);
+    }
+  } catch (err) {
+    console.error('[Zalo] sendZaloLinkButton thất bại:', err.message);
+    await sendZaloText(userId, `${title}\n${subtitle}\n👉 ${url}`);
   }
 }
 
@@ -376,6 +411,7 @@ module.exports = {
   createZaloGroup,
   deleteZaloGroup,
   sendZaloButtons,
+  sendZaloLinkButton,
   sendZaloToGroup,
   sendZaloTextToGroup,
   sendZaloGroupText,
