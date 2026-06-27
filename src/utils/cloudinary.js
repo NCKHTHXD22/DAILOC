@@ -32,23 +32,33 @@ async function uploadFromBuffer(buffer, filename) {
 
 // Download ảnh từ Zalo rồi upload lên Cloudinary
 async function uploadFromZaloImageUrl(zaloUrl) {
-  // Bước 1: Download ảnh từ Zalo
-  let buffer;
+  // Bước 1: Thử download qua Node.js (dùng cấu hình tránh lỗi nén và bot block)
   try {
     const res = await axios.get(zaloUrl, {
       responseType: 'arraybuffer',
       timeout: 15000,
+      headers: {
+        'Accept-Encoding': 'identity', // Tránh lỗi giải nén gzip của Axios đối với arraybuffer
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      },
     });
-    buffer = Buffer.from(res.data);
-    console.log(`[Cloudinary] Download Zalo OK — size: ${buffer.length} bytes`);
+    const buffer = Buffer.from(res.data);
+    if (buffer && buffer.length > 0) {
+      console.log(`[Cloudinary] Download Zalo OK — size: ${buffer.length} bytes`);
+      const filename = `zalo-${Date.now()}`;
+      return await uploadFromBuffer(buffer, filename);
+    }
+    console.warn('[Cloudinary] Download trả về 0 bytes, chuyển sang để Cloudinary tự fetch...');
   } catch (err) {
-    console.error(`[Cloudinary] Download Zalo thất bại — status: ${err.response?.status} | ${err.message}`);
-    throw err;
+    console.warn(`[Cloudinary] Download qua Node thất bại (${err.message}), chuyển sang để Cloudinary tự fetch...`);
   }
 
-  // Bước 2: Upload lên Cloudinary
-  const filename = `zalo-${Date.now()}`;
-  return uploadFromBuffer(buffer, filename);
+  // Bước 2: Fallback — Để Cloudinary tự tải ảnh từ Zalo URL
+  const result = await cloudinary.uploader.upload(zaloUrl, {
+    folder: 'dailoc-goopy',
+    resource_type: 'image',
+  });
+  return result.secure_url;
 }
 
 module.exports = { uploadFromUrl, uploadFromBuffer, uploadFromZaloImageUrl };
