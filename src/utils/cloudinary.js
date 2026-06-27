@@ -32,15 +32,12 @@ async function uploadFromBuffer(buffer, filename) {
 
 // Download ảnh từ Zalo rồi upload lên Cloudinary
 async function uploadFromZaloImageUrl(zaloUrl) {
-  const { getToken } = require('./zaloToken');
-
   // Bước 1: Download ảnh từ Zalo
   let buffer;
   try {
     const res = await axios.get(zaloUrl, {
       responseType: 'arraybuffer',
       timeout: 15000,
-      headers: { access_token: getToken() },
     });
     buffer = Buffer.from(res.data);
     console.log(`[Cloudinary] Download Zalo OK — size: ${buffer.length} bytes`);
