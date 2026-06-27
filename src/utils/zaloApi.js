@@ -177,7 +177,25 @@ async function uploadImageToZalo(filepath) {
 async function uploadFileToZalo(filepath, originalFilename) {
   const FormData = require('form-data');
   const form = new FormData();
-  form.append('file', fs.createReadStream(filepath), { filename: originalFilename });
+
+  // Loại bỏ dấu tiếng Việt và ký tự đặc biệt trong tên file để Zalo API không lỗi
+  const ext = path.extname(originalFilename).toLowerCase();
+  const base = path.basename(originalFilename, ext);
+  const safeBase = base
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, 'd')
+    .replace(/[^a-zA-Z0-9_-]/g, '_');
+  const safeFilename = (safeBase || 'document') + ext;
+
+  // Xác định Content-Type phù hợp để Zalo API nhận diện chính xác
+  let contentType = 'application/octet-stream';
+  if (ext === '.pdf') contentType = 'application/pdf';
+  else if (ext === '.docx') contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  else if (ext === '.xlsx') contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  else if (ext === '.xls') contentType = 'application/vnd.ms-excel';
+
+  form.append('file', fs.createReadStream(filepath), { filename: safeFilename, contentType });
 
   const doUpload = (token) =>
     axios.post('https://openapi.zalo.me/v2.0/oa/upload/file', form, {
