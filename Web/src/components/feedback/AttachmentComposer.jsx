@@ -170,11 +170,11 @@ export default function AttachmentComposer({ value, onChange, disabled }) {
             <label className="flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-slate-200 p-4 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/30 transition-all">
               <FileText className="h-5 w-5 text-slate-300" />
               <span className="text-xs text-slate-400">
-                {uploadingFile ? 'Đang tải file...' : 'Chọn file .docx .pdf .xlsx · tối đa 20MB'}
+                {uploadingFile ? 'Đang tải file...' : 'Chọn file .pdf .doc .csv · tối đa 20MB'}
               </span>
               <input
                 type="file"
-                accept=".docx,.pdf,.xlsx,.xls"
+                accept=".pdf,.doc,.csv"
                 className="hidden"
                 disabled={disabled || uploadingFile}
                 onChange={(e) => handleFileUpload(e.target.files[0])}

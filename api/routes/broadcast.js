@@ -150,8 +150,9 @@ router.post('/upload/video', (req, res) => {
 })
 
 // ── Upload file ────────────────────────────────────────────────────
+// Zalo OA API chỉ hỗ trợ: pdf, doc, csv
 router.post('/upload/file', (req, res) => {
-  const ALLOWED_EXT = ['.docx', '.pdf', '.xlsx', '.xls']
+  const ALLOWED_EXT = ['.pdf', '.doc', '.csv']
   const storage = multer.diskStorage({
     destination: UPLOAD_DIR,
     filename: (_, file, cb) =>
@@ -163,7 +164,7 @@ router.post('/upload/file', (req, res) => {
     fileFilter: (_, file, cb) => {
       const ext = path.extname(file.originalname).toLowerCase()
       if (ALLOWED_EXT.includes(ext)) cb(null, true)
-      else cb(new Error('Chỉ nhận file .docx, .pdf, .xlsx, .xls'))
+      else cb(new Error('Zalo chỉ hỗ trợ file .pdf, .doc, .csv'))
     },
   }).single('file')
 

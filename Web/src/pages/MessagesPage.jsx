@@ -352,8 +352,8 @@ function SendTab({ followers, groups, syncedAt }) {
                 {!fileInfo ? (
                   <label className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 p-6 cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all">
                     <FileText className="h-6 w-6 text-slate-300" />
-                    <span className="text-sm text-slate-400">Chọn file .docx .pdf .xlsx · tối đa 20MB</span>
-                    <input type="file" accept=".docx,.pdf,.xlsx,.xls" className="hidden"
+                    <span className="text-sm text-slate-400">Chọn file .pdf .doc .csv · tối đa 20MB</span>
+                    <input type="file" accept=".pdf,.doc,.csv" className="hidden"
                       onChange={e => handleFileUpload(e.target.files[0])} />
                   </label>
                 ) : (

@@ -173,7 +173,7 @@ async function uploadImageToZalo(filepath) {
   return uploadImageBufferToZalo(buffer, filename);
 }
 
-// Upload file (docx/pdf/xlsx) lên Zalo, trả về file token
+// Upload file (pdf/doc/csv) lên Zalo, trả về file token
 async function uploadFileToZalo(filepath, originalFilename) {
   const FormData = require('form-data');
   const form = new FormData();
@@ -188,12 +188,11 @@ async function uploadFileToZalo(filepath, originalFilename) {
     .replace(/[^a-zA-Z0-9_-]/g, '_');
   const safeFilename = (safeBase || 'document') + ext;
 
-  // Xác định Content-Type phù hợp để Zalo API nhận diện chính xác
+  // Zalo OA API chỉ hỗ trợ: pdf, doc, csv
   let contentType = 'application/octet-stream';
   if (ext === '.pdf') contentType = 'application/pdf';
-  else if (ext === '.docx') contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-  else if (ext === '.xlsx') contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-  else if (ext === '.xls') contentType = 'application/vnd.ms-excel';
+  else if (ext === '.doc') contentType = 'application/msword';
+  else if (ext === '.csv') contentType = 'text/csv';
 
   form.append('file', fs.createReadStream(filepath), { filename: safeFilename, contentType });
 
