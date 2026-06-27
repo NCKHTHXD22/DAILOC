@@ -271,4 +271,7 @@ app.listen(CONFIG.PORT, () => {
   console.log(`\n🚀 Server Đại Lộc Góp ý chạy tại http://localhost:${CONFIG.PORT}`);
   console.log(`📡 Webhook URL: http://localhost:${CONFIG.PORT}/webhook`);
   console.log(`🔑 Set tokens: http://localhost:${CONFIG.PORT}/set-tokens\n`);
+
+  // Khởi động runner kiểm tra lịch hẹn gửi tin
+  require('./src/admin/scheduledMessageService').startScheduledMessageRunner();
 });
