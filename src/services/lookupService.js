@@ -8,16 +8,12 @@ const CANCEL_WORDS = ['huỷ', 'hủy', 'huy', 'cancel', 'thoát', 'thoat'];
 
 function isLookupTrigger(text) {
   const lower = text.toLowerCase().trim();
+  // Lưu ý: "tra cứu hồ sơ" / "#tracuuhoso" thuộc tra cứu THỦ TỤC HÀNH CHÍNH (hoSoService), không nhận ở đây.
   return (
-    lower === '#tracuuhoso' ||
     lower === '#tracuugoopy' ||
     lower === '#theodoi' ||
-    lower.includes('tra cứu hồ sơ') ||
-    lower.includes('tra cuu ho so') ||
     lower.includes('theo dõi phản ánh') ||
     lower.includes('theo doi phan anh') ||
-    lower.includes('theo dõi hồ sơ') ||
-    lower.includes('theo doi ho so') ||
     lower.includes('tra cứu góp ý') ||
     lower.includes('tra cuu gop y') ||
     lower.includes('tra cứu phản ánh') ||

@@ -14,9 +14,33 @@ const {
   handleLookupReply,
   lookupByCode,
 } = require('../services/lookupService');
-const { getState } = require('../services/chatState');
+const {
+  searchDossier,
+  extractDossiers,
+  sendDossierCard,
+  isDossierCode,
+  isHoSoTrigger,
+} = require('../services/hoSoService');
+const { getState, setState, clearState } = require('../services/chatState');
 const { saveProfile } = require('../admin/profileCache');
 const { syncFollowers } = require('../admin/followerService');
+
+// Tra cứu hồ sơ thủ tục hành chính qua IOCTC
+async function handleHoSoQuery(userId, code) {
+  await sendZaloText(userId, `⏳ Đang tra cứu hồ sơ ${code}...`);
+  try {
+    const data = await searchDossier(code);
+    const dossiers = extractDossiers(data);
+    if (!dossiers.length) {
+      await sendZaloText(userId, `⚠️ Không tìm thấy hồ sơ ${code}. Vui lòng kiểm tra lại mã số.`);
+      return;
+    }
+    for (const d of dossiers) await sendDossierCard(userId, d);
+  } catch (err) {
+    console.error('[IOCTC] Lỗi tra cứu:', err.message);
+    await sendZaloText(userId, '⚠️ Hệ thống tra cứu tạm thời gián đoạn. Vui lòng thử lại sau ít phút.');
+  }
+}
 
 async function handleWebhook(body) {
   const eventName = body.event_name;
@@ -125,18 +149,58 @@ async function handleWebhook(body) {
       }
     }
 
-    // Đang trong luồng tra cứu → xử lý chọn số / mã
     const state = getState(userId);
+    const lower = text.toLowerCase().trim();
+
+    // Đang trong luồng theo dõi phản ánh → xử lý chọn số / mã
     if (state?.step === 'lookup_list') {
       await handleLookupReply(userId, text);
       return;
     }
+
+    // Đang chờ nhập mã hồ sơ TTHC
+    if (state?.step === 'waiting_for_hoso_code') {
+      if (['huỷ', 'hủy', 'huy', 'cancel', 'thoát', 'thoat'].includes(lower)) {
+        clearState(userId);
+        await sendZaloText(userId, '❌ Đã huỷ.');
+        return;
+      }
+      if (isDossierCode(text)) {
+        clearState(userId);
+        await handleHoSoQuery(userId, text.trim().toUpperCase());
+      } else {
+        await sendZaloText(userId,
+          '❌ Mã hồ sơ không đúng định dạng.\n\n' +
+          'Vui lòng nhập đúng định dạng:\nVD: H17.00-000000-0000\n\n' +
+          '(Nhắn "huỷ" để thoát)'
+        );
+      }
+      return;
+    }
+
     // Khi chưa có luồng nào đang chạy: bắt trigger tra cứu / mã trực tiếp
     if (!state) {
+      // Tra cứu thủ tục hành chính
+      if (isHoSoTrigger(text)) {
+        setState(userId, { step: 'waiting_for_hoso_code' });
+        await sendZaloText(userId,
+          '📋 Vui lòng nhập mã số hồ sơ cần tra cứu.\n' +
+          'VD: H17.00-000000-0000\n\n' +
+          '(Nhắn "huỷ" để thoát)'
+        );
+        return;
+      }
+      // Theo dõi phản ánh
       if (isLookupTrigger(text)) {
         await startLookup(userId);
         return;
       }
+      // Nhắn thẳng mã hồ sơ TTHC (không qua trigger)
+      if (isDossierCode(text)) {
+        await handleHoSoQuery(userId, text.trim().toUpperCase());
+        return;
+      }
+      // Nhắn thẳng mã phản ánh (#XXXXX)
       if (isDirectCode(text)) {
         await lookupByCode(userId, text);
         return;
@@ -151,6 +215,15 @@ async function handleWebhook(body) {
   // User click menu "Truy vấn tự động" (submit_info)
   if (eventName === 'user_submit_info') {
     const action = (body.info?.action_payload || body.info?.action || body.info?.data || '').trim();
+    if (isHoSoTrigger(action)) {
+      setState(userId, { step: 'waiting_for_hoso_code' });
+      await sendZaloText(userId,
+        '📋 Vui lòng nhập mã số hồ sơ cần tra cứu.\n' +
+        'VD: H17.00-000000-0000\n\n' +
+        '(Nhắn "huỷ" để thoát)'
+      );
+      return;
+    }
     if (isLookupTrigger(action)) {
       await startLookup(userId);
       return;

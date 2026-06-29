@@ -17,5 +17,9 @@ module.exports = {
   EMAIL_ADMIN: process.env.EMAIL_ADMIN || '',
   EMAIL_ADMIN_PASSWORD: process.env.EMAIL_ADMIN_PASSWORD || '',
   DASHBOARD_URL: process.env.DASHBOARD_URL || '',
+  // ===== IOCTC (Tra cứu thủ tục hành chính / hồ sơ) =====
+  IOCTC_BASE_URL: process.env.IOCTC_BASE_URL || '',
+  IOCTC_USERNAME: process.env.IOCTC_USERNAME || '',
+  IOCTC_PASSWORD: process.env.IOCTC_PASSWORD || '',
 };
 

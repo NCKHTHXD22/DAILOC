@@ -217,6 +217,26 @@ async function sendZaloTextToGroup(groupId, text) {
   return sendZaloToGroup(text, groupId);
 }
 
+// Gửi 1 ảnh đến user — throw khi lỗi để caller fallback về text (dùng cho card hồ sơ)
+async function sendZaloImage(userId, attachmentId) {
+  const res = await zaloPost('https://openapi.zalo.me/v2.0/oa/message', {
+    recipient: { user_id: String(userId) },
+    message: {
+      attachment: {
+        type: 'template',
+        payload: {
+          template_type: 'media',
+          elements: [{ media_type: 'image', attachment_id: attachmentId }],
+        },
+      },
+    },
+  });
+  if (res.data?.error !== 0) {
+    console.error('[Zalo] Lỗi gửi ảnh:', res.data);
+    throw new Error(`Zalo image error ${res.data?.error}: ${res.data?.message}`);
+  }
+}
+
 // Gửi nhiều ảnh đến user (mỗi ảnh 1 message)
 async function sendZaloImages(userId, attachmentIds) {
   for (const attachId of attachmentIds) {
@@ -432,6 +452,7 @@ module.exports = {
   sendZaloToGroup,
   sendZaloTextToGroup,
   sendZaloGroupText,
+  sendZaloImage,
   sendZaloImages,
   sendZaloImagesToGroup,
   sendZaloImageWithLink,
