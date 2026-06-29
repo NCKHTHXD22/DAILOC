@@ -151,6 +151,33 @@ async function handleWebhook(body) {
 
     const state = getState(userId);
     const lower = text.toLowerCase().trim();
+    // State "menu" = đang chờ chọn số/mã (theo dõi phản ánh hoặc tra cứu hồ sơ).
+    // Lệnh rõ ràng được phép thoát các state này để chuyển luồng; KHÔNG override khi đang nhập nội dung góp ý.
+    const inMenuState = state?.step === 'lookup_list' || state?.step === 'waiting_for_hoso_code';
+
+    if (!state || inMenuState) {
+      // Tra cứu thủ tục hành chính
+      if (isHoSoTrigger(text)) {
+        setState(userId, { step: 'waiting_for_hoso_code' });
+        await sendZaloText(userId,
+          '📋 Vui lòng nhập mã số hồ sơ cần tra cứu.\n' +
+          'VD: H17.00-000000-0000\n\n' +
+          '(Nhắn "huỷ" để thoát)'
+        );
+        return;
+      }
+      // Theo dõi phản ánh
+      if (isLookupTrigger(text)) {
+        await startLookup(userId);
+        return;
+      }
+      // Góp ý / phản ánh mới
+      if (isFeedbackTrigger(text)) {
+        clearState(userId);
+        await startFeedback(userId, displayName);
+        return;
+      }
+    }
 
     // Đang trong luồng theo dõi phản ánh → xử lý chọn số / mã
     if (state?.step === 'lookup_list') {
@@ -178,36 +205,21 @@ async function handleWebhook(body) {
       return;
     }
 
-    // Khi chưa có luồng nào đang chạy: bắt trigger tra cứu / mã trực tiếp
+    // Chưa có luồng: nhắn thẳng mã (không qua trigger)
     if (!state) {
-      // Tra cứu thủ tục hành chính
-      if (isHoSoTrigger(text)) {
-        setState(userId, { step: 'waiting_for_hoso_code' });
-        await sendZaloText(userId,
-          '📋 Vui lòng nhập mã số hồ sơ cần tra cứu.\n' +
-          'VD: H17.00-000000-0000\n\n' +
-          '(Nhắn "huỷ" để thoát)'
-        );
-        return;
-      }
-      // Theo dõi phản ánh
-      if (isLookupTrigger(text)) {
-        await startLookup(userId);
-        return;
-      }
-      // Nhắn thẳng mã hồ sơ TTHC (không qua trigger)
+      // Mã hồ sơ TTHC
       if (isDossierCode(text)) {
         await handleHoSoQuery(userId, text.trim().toUpperCase());
         return;
       }
-      // Nhắn thẳng mã phản ánh (#XXXXX)
+      // Mã phản ánh (#XXXXX)
       if (isDirectCode(text)) {
         await lookupByCode(userId, text);
         return;
       }
     }
 
-    // Xử lý trong luồng góp ý (trigger chỉ kích hoạt khi chưa có luồng đang chạy)
+    // Xử lý trong luồng góp ý (tiếp tục các bước đang dở)
     await handleText(userId, text, displayName);
     return;
   }
