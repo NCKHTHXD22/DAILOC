@@ -8,10 +8,10 @@ const { htmlToPng } = require('../utils/imageGen');
 // Logo Đại Lộc → base64 (đọc 1 lần, nhúng thẳng vào card). Thiếu file → fallback SVG trong card.
 let LOGO_DATA_URI = '';
 try {
-  const buf = fs.readFileSync(path.join(__dirname, '../assets/bieu-trung.png'));
-  LOGO_DATA_URI = `data:image/png;base64,${buf.toString('base64')}`;
+  const buf = fs.readFileSync(path.join(__dirname, '../assets/logo_dailoc.jpg'));
+  LOGO_DATA_URI = `data:image/jpeg;base64,${buf.toString('base64')}`;
 } catch (e) {
-  console.warn('[HoSo] Không đọc được logo bieu-trung.png (dùng SVG fallback):', e.message);
+  console.warn('[HoSo] Không đọc được logo logo_dailoc.jpg (dùng SVG fallback):', e.message);
 }
 
 let ioctcTokenCache = { token: null, expiry: 0 };
