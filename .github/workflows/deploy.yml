@@ -18,7 +18,8 @@ jobs:
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
             cd ${{ secrets.VPS_APP_DIR }}
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
             npm install --production
             pm2 restart dailoc-backend || pm2 start server.js --name dailoc-backend
             echo "✅ Deploy xong: $(date)"
