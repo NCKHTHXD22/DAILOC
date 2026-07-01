@@ -228,9 +228,9 @@ app.get('/oauth', async (req, res) => {
       params,
       { headers: { secret_key: process.env.ZALO_APP_SECRET, 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
-    const { access_token, refresh_token } = r.data;
+    const { access_token, refresh_token, expires_in } = r.data;
     if (access_token) {
-      await setTokensManually(access_token, refresh_token);
+      await setTokensManually(access_token, refresh_token, expires_in);
       console.log('[OAuth] Lấy token mới từ OAuth thành công');
       return res.type('html').send('<h2>✅ Cấp quyền thành công! Token đã lưu. Bot sẵn sàng.</h2>');
     }
