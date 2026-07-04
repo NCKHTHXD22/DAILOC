@@ -20,6 +20,7 @@ jobs:
             cd ${{ secrets.VPS_APP_DIR }}
             git fetch origin main
             git reset --hard origin/main
+            cd Backend
             npm install --production
-            pm2 restart dailoc-backend || pm2 start server.js --name dailoc-backend
+            pm2 restart dailoc-backend || pm2 start server.js --name dailoc-backend --cwd ${{ secrets.VPS_APP_DIR }}/Backend
             echo "✅ Deploy xong: $(date)"

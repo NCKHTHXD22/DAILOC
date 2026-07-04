@@ -112,11 +112,12 @@ app.post('/deploy', (req, res) => {
     }
   }
   const { execSync } = require('child_process');
-  const appDir = process.env.VPS_APP_DIR || __dirname;
+  const appDir = process.env.VPS_APP_DIR || path.join(__dirname, '..');
+  const backendDir = path.join(appDir, 'Backend');
   console.log('[Deploy] Bắt đầu git pull + restart...');
   res.json({ ok: true, message: 'Deploying...' });
   try {
-    execSync(`cd "${appDir}" && git pull origin main && npm install --production`, { stdio: 'inherit' });
+    execSync(`cd "${appDir}" && git pull origin main && cd "${backendDir}" && npm install --production`, { stdio: 'inherit' });
     console.log('[Deploy] Pull xong, đang restart pm2...');
     execSync('pm2 restart dailoc-oa', { stdio: 'inherit' });
     console.log('[Deploy] ✅ Deploy thành công');
@@ -263,12 +264,12 @@ app.get('/', (req, res, next) => {
 app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
 
 // ── Serve React build ─────────────────────────────────
-const webDist = path.join(__dirname, 'Web', 'dist');
+const webDist = path.join(__dirname, '..', 'Frontend', 'Web', 'dist');
 if (require('fs').existsSync(webDist)) {
   app.use(express.static(webDist));
   app.get('*', (_req, res) => res.sendFile(path.join(webDist, 'index.html')));
 } else {
-  console.warn('[Web] Chưa build React. Chạy: cd Web && npm run build');
+  console.warn('[Web] Chưa build React. Chạy: cd Frontend/Web && npm run build');
 }
 
 app.listen(CONFIG.PORT, () => {

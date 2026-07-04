@@ -30,12 +30,15 @@ ss -tlnp | grep node              # xem port nào đang free
 ```bash
 mkdir -p /var/www/<app> && cd /var/www/<app>
 git clone <repo-url> .
+cd Backend
 # Tạo .env (copy giá trị thật từ host cũ, không tạo mới)
 npm install --omit=dev
-pm2 start server.js --name <app>-backend --cwd /var/www/<app>
+pm2 start server.js --name <app>-backend --cwd /var/www/<app>/Backend
 pm2 save
 curl http://localhost:<port>/health   # sanity check
 ```
+
+> Ghi chú: repo có cấu trúc `Backend/` (Express API, `server.js`) + `Frontend/` (các app React/Vite, ví dụ `Frontend/Web` là admin dashboard). Mọi lệnh `npm install`/`pm2 start` cho backend đều chạy trong `Backend/`, không phải root repo.
 
 ## 4. DNS + Nginx + SSL
 
@@ -95,8 +98,9 @@ jobs:
           script: |
             cd ${{ secrets.VPS_APP_DIR }}
             git pull origin main
+            cd Backend
             npm install --production
-            pm2 restart <app>-backend || pm2 start server.js --name <app>-backend
+            pm2 restart <app>-backend || pm2 start server.js --name <app>-backend --cwd ${{ secrets.VPS_APP_DIR }}/Backend
             echo "✅ Deploy xong: $(date)"
 ```
 
