@@ -279,4 +279,7 @@ app.listen(CONFIG.PORT, () => {
 
   // Khởi động runner kiểm tra lịch hẹn gửi tin
   require('./src/admin/scheduledMessageService').startScheduledMessageRunner();
+
+  // Khởi động đồng bộ lịch cắt điện Đại Lộc (EVNCPC)
+  require('./src/services/catDienService').startAutoSync();
 });

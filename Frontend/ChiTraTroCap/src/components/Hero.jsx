@@ -1,4 +1,4 @@
-import { Landmark, HeartHandshake, Award } from 'lucide-react'
+import { HeartHandshake, Award } from 'lucide-react'
 
 const HERO_GRAD = 'linear-gradient(135deg,#6366f1 0%,#8b5cf6 40%,#d946ef 74%,#fb7185 100%)'
 
@@ -28,8 +28,8 @@ export default function Hero({ period }) {
         </div>
 
         <div className="flex items-center gap-[13px]">
-          <div className="w-[54px] h-[54px] shrink-0 rounded-2xl flex items-center justify-center bg-white/20 border border-white/30 backdrop-blur-[6px]">
-            <Landmark className="h-[26px] w-[26px]" />
+          <div className="w-[54px] h-[54px] shrink-0 rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.9)', boxShadow: '0 6px 16px -6px rgba(0,0,0,0.35)' }}>
+            <img src="/LogoDaiLoc.jpg" alt="Đại Lộc" className="w-full h-full object-cover" />
           </div>
           <div>
             <div className="text-xl font-extrabold tracking-tight leading-[1.1]">Lịch chi trả trợ cấp</div>

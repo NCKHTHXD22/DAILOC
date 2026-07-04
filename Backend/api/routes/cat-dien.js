@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { getOutages, syncOutages, listStations, getOutagesByStations } = require('../../src/services/catDienService');
 
-// GET /api/cat-dien?q=12/06&donVi=PC05HH
+// GET /api/cat-dien?q=12/06&donVi=PC05GG (PC05GG = Điện lực Đại Lộc)
 router.get('/', async (req, res) => {
   try {
     const { q = '', donVi } = req.query;
