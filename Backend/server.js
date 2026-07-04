@@ -282,4 +282,7 @@ app.listen(CONFIG.PORT, () => {
 
   // Khởi động đồng bộ lịch cắt điện Đại Lộc (EVNCPC)
   require('./src/services/catDienService').startAutoSync();
+
+  // Khởi động đồng bộ văn bản hành chính (mỗi ngày 3h sáng)
+  require('./src/services/vanBanHanhChinhService').startAutoSync();
 });
