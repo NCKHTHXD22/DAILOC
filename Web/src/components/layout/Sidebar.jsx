@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, MessageSquare, Users, LogOut, Settings, Building2, Send } from 'lucide-react'
+import { LayoutDashboard, MessageSquare, Users, LogOut, Settings, Building2, Send, Wallet } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 
@@ -69,6 +69,7 @@ export default function Sidebar() {
         <div className="space-y-0.5">
           <NavItem to="/dashboard" icon={LayoutDashboard} label="Tổng quan" />
           <NavItem to="/feedbacks"  icon={MessageSquare}   label="Góp ý & Phản ánh" />
+          <NavItem to="/tro-cap"    icon={Wallet}          label="Lịch chi trả trợ cấp" />
         </div>
 
         {user?.role === 'superadmin' && (

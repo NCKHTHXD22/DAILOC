@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 60% 97%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --primary: 258 90% 66%;
+    --primary-foreground: 0 0% 100%;
+    --muted-foreground: 220 9% 46%;
+    --border: 230 30% 92%;
+    --radius: 1rem;
+  }
+}
+
+@layer base {
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; padding: 0; @apply font-sans antialiased; color: #0f172a; }
+  select { font-family: inherit; }
+  select:focus { outline: none; }
+  button { font-family: inherit; }
+}
+
+::-webkit-scrollbar { height: 0; width: 0; }
+
+/* Lưới chấm mờ dần, dùng cho nền trang */
+.dot-grid {
+  background-image: radial-gradient(circle, rgba(79, 70, 229, 0.10) 1px, transparent 1px);
+  background-size: 26px 26px;
+  -webkit-mask-image: linear-gradient(180deg, #000, transparent 90%);
+  mask-image: linear-gradient(180deg, #000, transparent 90%);
+}
+
+/* Skeleton loading */
+.skel {
+  background-color: #fff;
+  border-radius: 22px;
+  border: 1px solid #eef0f6;
+  background-image: linear-gradient(90deg, #eef0f6 25%, #f7f8fc 37%, #eef0f6 63%);
+  background-size: 520px 100%;
+}

@@ -21,5 +21,11 @@ module.exports = {
   IOCTC_BASE_URL: process.env.IOCTC_BASE_URL || '',
   IOCTC_USERNAME: process.env.IOCTC_USERNAME || '',
   IOCTC_PASSWORD: process.env.IOCTC_PASSWORD || '',
+
+  // ===== EVNCPC (Lịch cắt điện) =====
+  EVNCPC_API_URL: process.env.EVNCPC_API_URL || 'https://cskh-api.cpc.vn/api/remote/outages/area',
+  EVNCPC_ORG_LIST_URL: process.env.EVNCPC_ORG_LIST_URL || 'https://cskh-api.cpc.vn/api/remote/organizations',
+  EVNCPC_ORG_CODE: process.env.EVNCPC_ORG_CODE || 'PP',
+  EVNCPC_SUBORG_CODE: process.env.EVNCPC_SUBORG_CODE || '',
 };
 

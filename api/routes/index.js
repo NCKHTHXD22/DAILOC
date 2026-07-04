@@ -8,8 +8,18 @@ const categoryRoutes = require('./categories')
 const zaloMembersRoutes = require('./zalo-members')
 const broadcastRoutes = require('./broadcast')
 const notificationRoutes = require('./notifications')
+const catDienRoutes = require('./cat-dien')
+const troCapPublicRoutes = require('./tro-cap-public')
+const vanBanRoutes = require('./van-ban-hanh-chinh')
+const publicFeedbackRoutes = require('./public-feedback')
 
 router.use('/auth', authRoutes)
+
+// Public routes (không cần đăng nhập — dành cho tiện ích công dân)
+router.use('/cat-dien', catDienRoutes)
+router.use('/tro-cap-public', troCapPublicRoutes)
+router.use('/van-ban-hanh-chinh', vanBanRoutes)
+router.use('/public', publicFeedbackRoutes)
 
 router.use(requireAuth)
 router.use('/stats', statsRoutes)
@@ -19,5 +29,6 @@ router.use('/categories', categoryRoutes)
 router.use('/zalo-members', zaloMembersRoutes)
 router.use('/broadcast', broadcastRoutes)
 router.use('/notifications', notificationRoutes)
+router.use('/tro-cap', require('./tro-cap'))
 
 module.exports = router

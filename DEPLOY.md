@@ -90,7 +90,7 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          key: ${{ secrets.VPS_PRIVATE_KEY }}
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
             cd ${{ secrets.VPS_APP_DIR }}
@@ -106,7 +106,7 @@ jobs:
 |---|---|
 | `VPS_HOST` | IP VPS |
 | `VPS_USER` | `root` |
-| `VPS_SSH_KEY` | private key của key CI/CD riêng (bước 1) |
+| `VPS_PRIVATE_KEY` | private key của key CI/CD riêng (bước 1) |
 | `VPS_APP_DIR` | `/var/www/<app>` |
 
 ⚠️ **Gotcha**: push file trong `.github/workflows/` sẽ bị GitHub reject nếu Personal Access Token thiếu scope **`workflow`**. Tạo token có sẵn scope tại:

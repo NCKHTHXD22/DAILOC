@@ -12,6 +12,7 @@ import UsersPage from '@/pages/UsersPage'
 import UserFormPage from '@/pages/UserFormPage'
 import SettingsPage from '@/pages/SettingsPage'
 import MessagesPage from '@/pages/MessagesPage'
+import TroCapPage from '@/pages/TroCapPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,6 +33,7 @@ export default function App() {
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/feedbacks" element={<FeedbacksPage />} />
                 <Route path="/feedbacks/:id" element={<FeedbackDetailPage />} />
+                <Route path="/tro-cap" element={<TroCapPage />} />
                 <Route path="/users" element={<UsersPage />} />
                 <Route path="/users/new" element={<UserFormPage />} />
                 <Route path="/users/:id/edit" element={<UserFormPage />} />

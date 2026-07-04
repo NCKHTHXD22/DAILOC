@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 250 60% 97%;
+    --foreground: 252 20% 22%;
+    --card: 0 0% 100%;
+    --card-foreground: 252 20% 22%;
+    --primary: 258 90% 66%;
+    --primary-foreground: 0 0% 100%;
+    --muted-foreground: 250 10% 55%;
+    --border: 255 40% 92%;
+    --radius: 1rem;
+  }
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 0; @apply font-sans antialiased; color: #38334f; }
+  input, select, button, textarea { font-family: inherit; }
+  input::placeholder { color: #a7a3bd; }
+  select option { background: #ffffff; color: #38334f; }
+  input[type='date']::-webkit-calendar-picker-indicator { opacity: 0.55; cursor: pointer; }
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.25); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(139, 92, 246, 0.4); }
+
+/* Lưới chấm mờ dần, dùng cho nền trang */
+.dot-grid {
+  background-image: radial-gradient(rgba(120, 100, 190, 0.14) 1.4px, transparent 1.4px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(130% 100% at 50% 0%, #000 40%, transparent 82%);
+  mask-image: radial-gradient(130% 100% at 50% 0%, #000 40%, transparent 82%);
+}
