@@ -285,4 +285,7 @@ app.listen(CONFIG.PORT, () => {
 
   // Khởi động đồng bộ văn bản hành chính (mỗi ngày 3h sáng)
   require('./src/services/vanBanHanhChinhService').startAutoSync();
+
+  // Khởi động job đồng bộ phản ánh sang Cổng góp ý 1022 (quét lại mỗi 10 phút)
+  require('./src/services/cgy1022RetryService').startCgy1022Retry();
 });

@@ -27,5 +27,20 @@ module.exports = {
   EVNCPC_ORG_LIST_URL: process.env.EVNCPC_ORG_LIST_URL || 'https://cskh-api.cpc.vn/api/remote/organizations',
   EVNCPC_ORG_CODE: process.env.EVNCPC_ORG_CODE || 'PP',
   EVNCPC_SUBORG_CODE: process.env.EVNCPC_SUBORG_CODE || '',
+
+  // ===== Cổng góp ý 1022 (gopy.danang.gov.vn) — đồng bộ phản ánh sang hệ thống thành phố =====
+  // Xác thực: HTTP Basic Auth. Bắt buộc User-Agent trình duyệt (WAF chặn UA lạ).
+  // Toàn bộ đọc từ .env; thiếu BASE_URL/USERNAME/PASSWORD thì tính năng tự tắt.
+  CGY1022_BASE_URL: process.env.CGY1022_BASE_URL || '',
+  CGY1022_USERNAME: process.env.CGY1022_USERNAME || '',
+  CGY1022_PASSWORD: process.env.CGY1022_PASSWORD || '',
+  CGY1022_GOPY_PATH: process.env.CGY1022_GOPY_PATH || '/api/gopy',
+  CGY1022_USER_ID: process.env.CGY1022_USER_ID || '0',
+  CGY1022_DEFAULT_EMAIL: process.env.CGY1022_DEFAULT_EMAIL || 'gopy@dailoc.dxvtech.vn',
+  // "Zalo" là kênh duy nhất được 1022 đăng ký sẵn (nguonGopY khác → 404 "does not exist")
+  CGY1022_NGUON: process.env.CGY1022_NGUON || 'Zalo',
+  // JSON map tên danh mục Đại Lộc → linhVucId của 1022, VD: {"Môi trường, Hạ tầng, Xây dựng": 4}
+  CGY1022_LINHVUC_MAP: process.env.CGY1022_LINHVUC_MAP || '{}',
+  CGY1022_LINHVUC_DEFAULT: process.env.CGY1022_LINHVUC_DEFAULT || '',
 };
 
