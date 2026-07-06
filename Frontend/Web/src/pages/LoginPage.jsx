@@ -12,8 +12,8 @@ import logoImg from '@/images/LogoDaiLoc.jpg'
 import '@/styles/login.css'
 
 // Tọa độ trung tâm Xã Đại Lộc, Thành phố Đà Nẵng
-const LAT = 15.866
-const LNG = 108.087
+const LAT = 15.88978276
+const LNG = 108.10184051
 
 export default function LoginPage() {
   const navigate = useNavigate()
