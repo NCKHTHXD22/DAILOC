@@ -16,6 +16,7 @@ function timeAgo(date) {
 // Backend lọc theo quyền: lãnh đạo thấy tất cả, cán bộ chỉ thấy phản ánh được phân công.
 export default function NotificationBell() {
   const [open, setOpen] = useState(false)
+  const [pos, setPos] = useState(null)
   const ref = useRef(null)
 
   const { data } = useQuery({
@@ -37,7 +38,13 @@ export default function NotificationBell() {
   return (
     <div className="relative" ref={ref}>
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          if (!open && ref.current) {
+            const r = ref.current.getBoundingClientRect()
+            setPos({ top: r.bottom + 8, right: Math.max(8, window.innerWidth - r.right) })
+          }
+          setOpen((v) => !v)
+        }}
         className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 border border-white/20 hover:bg-white/25 transition-all"
       >
         <Bell className="h-4 w-4 text-white" />
@@ -49,7 +56,10 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto rounded-2xl bg-white border border-slate-100 shadow-xl z-50">
+        <div
+          className="fixed w-80 max-h-96 overflow-y-auto rounded-2xl bg-white border border-slate-100 shadow-xl z-50"
+          style={{ top: pos?.top ?? 60, right: pos?.right ?? 24 }}
+        >
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
             <span className="text-sm font-bold text-slate-700">Thông báo</span>
             <span className="text-xs text-slate-400">{pendingCount} chờ xử lý</span>
