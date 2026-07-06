@@ -3,8 +3,18 @@ const { sendZaloText } = require('../utils/zaloApi');
 const Feedback = require('../models/Feedback');
 
 const CODE_RE = /^#?([0-9a-f]{5})$/i;
+const PHONE_RE = /^(0|\+84)[3-9]\d{8}$/;
 const MAX_LIST = 5;
 const CANCEL_WORDS = ['huỷ', 'hủy', 'huy', 'cancel', 'thoát', 'thoat'];
+
+// Zalo userId (theo App) khác với userId theo OA (theo webhook) nên không dùng để lọc được.
+// Định danh chủ phản ánh bằng SĐT đã nhập lúc gửi (Feedback.contact) thay vì userId.
+function phoneVariants(raw) {
+  const p = raw.replace(/[\s.-]/g, '');
+  if (/^0[3-9]\d{8}$/.test(p)) return [p, '+84' + p.slice(1)];
+  if (/^\+84[3-9]\d{8}$/.test(p)) return ['0' + p.slice(3), p];
+  return [p];
+}
 
 function isLookupTrigger(text) {
   const lower = text.toLowerCase().trim();
@@ -79,17 +89,37 @@ function truncate(text, max) {
 }
 
 async function startLookup(userId) {
-  const items = await Feedback.find({ userId })
+  setState(userId, { step: 'lookup_awaiting_phone' });
+  await sendZaloText(userId,
+    '📱 Vui lòng nhập số điện thoại bạn đã dùng khi gửi phản ánh để tra cứu.\n' +
+    '(Nhắn "huỷ" để thoát)'
+  );
+}
+
+async function listByPhone(userId, rawPhone, pendingCode) {
+  const items = await Feedback.find({ contact: { $in: phoneVariants(rawPhone) } })
     .sort({ createdAt: -1 })
     .limit(MAX_LIST)
     .populate('categoryId', 'name')
     .lean();
 
   if (items.length === 0) {
+    clearState(userId);
     await sendZaloText(userId,
-      '📭 Bạn chưa có phản ánh nào được ghi nhận.\n\n' +
+      `📭 Không tìm thấy phản ánh nào với số điện thoại ${rawPhone.trim()}.\n\n` +
       'Chọn "Góp ý, phản ánh" trong menu để gửi mới.'
     );
+    return;
+  }
+
+  if (pendingCode) {
+    const fb = items.find((f) => shortCode(f) === pendingCode);
+    clearState(userId);
+    if (!fb) {
+      await sendZaloText(userId, `⚠️ Không tìm thấy phản ánh #${pendingCode} với số điện thoại ${rawPhone.trim()}.`);
+      return;
+    }
+    await replyDetail(userId, fb);
     return;
   }
 
@@ -106,6 +136,24 @@ async function startLookup(userId) {
     `\n\nNhắn số (1-${items.length}) để xem chi tiết, hoặc nhắn mã (#XXXXX).\n` +
     '(Nhắn "huỷ" để thoát)'
   );
+}
+
+async function handlePhoneReply(userId, text) {
+  const lower = text.toLowerCase().trim();
+  if (CANCEL_WORDS.includes(lower)) {
+    clearState(userId);
+    await sendZaloText(userId, '❌ Đã huỷ.');
+    return;
+  }
+
+  const raw = text.trim().replace(/[\s.-]/g, '');
+  if (!PHONE_RE.test(raw)) {
+    await sendZaloText(userId, '⚠️ Số điện thoại không đúng định dạng. Vui lòng nhập lại (VD: 0848018141).');
+    return;
+  }
+
+  const state = getState(userId);
+  await listByPhone(userId, text, state?.pendingCode);
 }
 
 async function replyDetail(userId, fb) {
@@ -138,26 +186,19 @@ async function replyDetail(userId, fb) {
   await sendZaloText(userId, msg);
 }
 
+// Chưa biết SĐT của người gõ mã trực tiếp (chưa qua state) → hỏi SĐT trước khi lộ dữ liệu.
 async function lookupByCode(userId, rawCode) {
   const match = rawCode.trim().match(CODE_RE);
   const code = (match ? match[1] : rawCode.replace(/^#/, '')).toUpperCase();
 
-  const candidates = await Feedback.find({ userId })
-    .sort({ createdAt: -1 })
-    .limit(50)
-    .populate('categoryId', 'name')
-    .lean();
-
-  const fb = candidates.find((f) => shortCode(f) === code);
-  clearState(userId);
-
-  if (!fb) {
-    await sendZaloText(userId, `⚠️ Không tìm thấy phản ánh #${code} trong các phản ánh của bạn.`);
-    return;
-  }
-  await replyDetail(userId, fb);
+  setState(userId, { step: 'lookup_awaiting_phone', pendingCode: code });
+  await sendZaloText(userId,
+    `📱 Để tra cứu phản ánh #${code}, vui lòng nhập số điện thoại bạn đã dùng khi gửi phản ánh.\n` +
+    '(Nhắn "huỷ" để thoát)'
+  );
 }
 
+// Đang trong danh sách đã lọc theo SĐT → tìm/chọn trong đúng danh sách đó, không truy vấn lại toàn DB.
 async function handleLookupReply(userId, text) {
   const lower = text.toLowerCase().trim();
 
@@ -167,13 +208,23 @@ async function handleLookupReply(userId, text) {
     return;
   }
 
+  const state = getState(userId);
+  const ids = state?.items || [];
+
   if (isDirectCode(text)) {
-    await lookupByCode(userId, text);
+    const match = text.trim().match(CODE_RE);
+    const code = (match ? match[1] : text.replace(/^#/, '')).toUpperCase();
+    const candidates = await Feedback.find({ _id: { $in: ids } }).populate('categoryId', 'name').lean();
+    const fb = candidates.find((f) => shortCode(f) === code);
+    clearState(userId);
+    if (!fb) {
+      await sendZaloText(userId, `⚠️ Không tìm thấy phản ánh #${code} trong danh sách của bạn.`);
+      return;
+    }
+    await replyDetail(userId, fb);
     return;
   }
 
-  const state = getState(userId);
-  const ids = state?.items || [];
   const idx = parseInt(lower, 10) - 1;
 
   if (Number.isInteger(idx) && ids[idx]) {
@@ -186,4 +237,4 @@ async function handleLookupReply(userId, text) {
   await sendZaloText(userId, `⚠️ Vui lòng nhắn số (1-${ids.length}) hoặc mã phản ánh (#XXXXX).`);
 }
 
-module.exports = { isLookupTrigger, isDirectCode, startLookup, handleLookupReply, lookupByCode };
+module.exports = { isLookupTrigger, isDirectCode, startLookup, handlePhoneReply, handleLookupReply, lookupByCode };

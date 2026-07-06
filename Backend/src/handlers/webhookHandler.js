@@ -11,6 +11,7 @@ const {
   isLookupTrigger,
   isDirectCode,
   startLookup,
+  handlePhoneReply,
   handleLookupReply,
   lookupByCode,
 } = require('../services/lookupService');
@@ -151,9 +152,9 @@ async function handleWebhook(body) {
 
     const state = getState(userId);
     const lower = text.toLowerCase().trim();
-    // State "menu" = đang chờ chọn số/mã (theo dõi phản ánh hoặc tra cứu hồ sơ).
+    // State "menu" = đang chờ chọn số/mã hoặc nhập SĐT (theo dõi phản ánh hoặc tra cứu hồ sơ).
     // Lệnh rõ ràng được phép thoát các state này để chuyển luồng; KHÔNG override khi đang nhập nội dung góp ý.
-    const inMenuState = state?.step === 'lookup_list' || state?.step === 'waiting_for_hoso_code';
+    const inMenuState = state?.step === 'lookup_list' || state?.step === 'lookup_awaiting_phone' || state?.step === 'waiting_for_hoso_code';
 
     if (!state || inMenuState) {
       // Tra cứu thủ tục hành chính
@@ -182,6 +183,12 @@ async function handleWebhook(body) {
     // Đang trong luồng theo dõi phản ánh → xử lý chọn số / mã
     if (state?.step === 'lookup_list') {
       await handleLookupReply(userId, text);
+      return;
+    }
+
+    // Đang chờ nhập SĐT để tra cứu phản ánh
+    if (state?.step === 'lookup_awaiting_phone') {
+      await handlePhoneReply(userId, text);
       return;
     }
 
